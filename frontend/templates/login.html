@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>Login</title>
+{% endblock %}
+{% block content %}
+    <script>
+    function login(){
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "auth/jwt/login", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = function () {
+    if (xhr.status === 200) {
+    window.location.replace("/");
+    }
+    };
+    xhr.send(`grant_type=&username=${email.value}&password=${password.value}&scope=&client_id=&client_secret=`);
+    };
+    </script>
+    <div style="margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);">
+        <form onsubmit="event.preventDefault();" id="form" action="" style="display: inline-block">
+            <div>
+                <label for="email">Enter your email: </label>
+                <input type="email" name="email" id="email" required>
+            </div>
+            </br>
+            <div class="form-example">
+                <label for="password">Enter your password: </label>
+                <input type="password" name="password" id="password" required>
+            </div>
+            </br>
+            <div>
+                <input type="submit" value="Login" onclick="login()">
+            </div>
+        </form>
+    </div>
+{% endblock %}

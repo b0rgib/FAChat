@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>Main</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script>
+        window.onload = init2;
+        function insertAfter(referenceNode, newNode) {
+            referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+        }
+        async function init2(){
+            user = await init();
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "group/", true);
+            xhr.onload = function () {
+                var groups = JSON.parse(xhr.responseText).slice().reverse();
+                var start = document.getElementById("-1");
+                for(var group in groups){
+                    var newDiv = document.createElement("div");
+                    var newContent = document.createTextNode(groups[group]["id"]);
+                    newDiv.appendChild(newContent);
+                    str = `</br>
+                    <div style="background-color: lightgrey; width:60%; margin: 0 auto; padding: 20px 20px;"><a href="chat/${groups[group]["id"]}" style="text-decoration: none;">${groups[group]["name"]}</a></div>`;
+                      
+                    // Parsing the string into HTML
+                    html = $.parseHTML(str);
+                    $('.-1').append(html);
+                };
+
+            };
+            xhr.send();
+        };
+        var ws = new WebSocket(`ws://127.0.0.1:8000/group/ws/`);
+            ws.onmessage = function(event) {
+                alert(event.data)
+                //window.location.replace("/");
+            };
+            function sendMessage() {
+                var input = document.getElementById("input");
+                ws.send(JSON.stringify({name: input.value}));
+            }
+    </script>
+{% endblock %}
+{% block content %}
+    </br>
+    </br>
+    </br>
+    <div class="-1">
+        <div style="background-color: lightgrey; width:60%; margin: 0 auto; padding: 20px 20px; text-align: center;">
+            <input style="margin: 0 auto;" id="input"></input>
+            <button style="display: table; margin: 0 auto; color: darkslategrey;" onclick="sendMessage()">+ Create new group</button>
+        </div>
+    </div>
+    </br>
+{% endblock %}
