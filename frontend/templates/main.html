@@ -4,22 +4,18 @@
     <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
     <script>
         window.onload = init2;
-        function insertAfter(referenceNode, newNode) {
-            referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
-        }
         async function init2(){
             user = await init();
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", "group/", true);
+            xhr.open("GET", "http://127.0.0.1:8000/group/", true);
             xhr.onload = function () {
                 var groups = JSON.parse(xhr.responseText).slice().reverse();
-                var start = document.getElementById("-1");
                 for(var group in groups){
-                    var newDiv = document.createElement("div");
-                    var newContent = document.createTextNode(groups[group]["id"]);
-                    newDiv.appendChild(newContent);
-                    str = `</br>
-                    <div style="background-color: lightgrey; width:60%; margin: 0 auto; padding: 20px 20px;"><a href="chat/${groups[group]["id"]}" style="text-decoration: none;">${groups[group]["name"]}</a></div>`;
+                    if (groups[group]["admin"] == user){
+                        str = `<div id="${groups[group]["id"]}" style="background-color: lightgrey; width:60%; margin: 0 auto; padding: 20px 20px;"><a href="chat/${groups[group]["id"]}" style="text-decoration: none;">${groups[group]["name"]}</a><button onclick="deleteGroup(${groups[group]["id"]})">Удалить</button></div>`;
+                    } else {
+                        str = `<div id="${groups[group]["id"]}" style="background-color: lightgrey; width:60%; margin: 0 auto; padding: 20px 20px;"><a href="chat/${groups[group]["id"]}" style="text-decoration: none;">${groups[group]["name"]}</a></div>`;
+                    }
                       
                     // Parsing the string into HTML
                     html = $.parseHTML(str);
@@ -29,14 +25,35 @@
             };
             xhr.send();
         };
-        var ws = new WebSocket(`ws://127.0.0.1:8000/group/ws/`);
+        var ws = new WebSocket(`ws://127.0.0.1:8000/group/`);
             ws.onmessage = function(event) {
-                alert(event.data)
+                if (JSON.parse(event.data) == "You are not authorized to create or delete groups") {
+                    alert(event.data)
+                } else if (typeof(JSON.parse(event.data)) == "number"){
+                    var group = document.getElementById(JSON.parse(event.data));
+                    group.remove()
+
+                }else {
+                    var data = JSON.parse(event.data)
+                    if (user == data["admin"]){
+                        str = `<div id="${data["id"]}" style="background-color: lightgrey; width:60%; margin: 0 auto; padding: 20px 20px;"><a href="chat/${data["id"]}" style="text-decoration: none;">${data["name"]}</a><button onclick="deleteGroup(${data["id"]})">Удалить</button></div>`;
+                    } else {
+                        str = `<div id="${data["id"]}" style="background-color: lightgrey; width:60%; margin: 0 auto; padding: 20px 20px;"><a href="chat/${data["id"]}" style="text-decoration: none;">${data["name"]}</a></div>`;
+                    }
+                      
+                    // Parsing the string into HTML
+                    html = $.parseHTML(str);
+                    $('.-1').prepend(html);
+                }
+                
                 //window.location.replace("/");
             };
-            function sendMessage() {
+            function sendGroup() {
                 var input = document.getElementById("input");
                 ws.send(JSON.stringify({name: input.value}));
+            }
+            function deleteGroup(id) {
+                ws.send(JSON.stringify({id: id}));
             }
     </script>
 {% endblock %}
@@ -44,11 +61,11 @@
     </br>
     </br>
     </br>
-    <div class="-1">
-        <div style="background-color: lightgrey; width:60%; margin: 0 auto; padding: 20px 20px; text-align: center;">
+    <div style="background-color: lightgrey; width:60%; margin: 0 auto; padding: 20px 20px; text-align: center;">
             <input style="margin: 0 auto;" id="input"></input>
-            <button style="display: table; margin: 0 auto; color: darkslategrey;" onclick="sendMessage()">+ Create new group</button>
+            <button style="display: table; margin: 0 auto; color: darkslategrey;" onclick="sendGroup()">+ Create new group</button>
         </div>
+    <div class="-1">
     </div>
     </br>
 {% endblock %}

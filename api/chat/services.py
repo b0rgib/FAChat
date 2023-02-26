@@ -10,9 +10,8 @@ class MessageService:
     def __init__(self, session: AsyncSession = Depends(get_async_session)):
         self.session = session
 
-    async def create(self, websocket, user):
-        message = await websocket.receive_json()
-        new_message = Message(user_id=user.id**message)
+    async def create(self, message, user):
+        new_message = Message(user_id=user.id, **message)
         self.session.add(new_message)
         await self.session.commit()
         await self.session.refresh(new_message)
@@ -46,17 +45,16 @@ class GroupService:
         self.session = session
 
     async def get(self):
-        query = select(Group)
+        query = select(Group).order_by(Group.edited_at)
         result = await self.session.execute(query)
         return [GetGroup.from_orm(group) for group in result.scalars().all()]
 
-    async def create(self, websocket, user):
-        group = await websocket.receive_json()
+    async def create(self, group, user):
         new_group = Group(admin=user.id, **group)
         self.session.add(new_group)
         await self.session.commit()
         await self.session.refresh(new_group)
-        return GetGroup.from_orm(new_group).json()
+        return GetGroup.from_orm(new_group).dict()
 
     async def delete(self, group_id, user):
         query = select(Group).where(Group.id == group_id)
@@ -75,3 +73,8 @@ class GroupService:
         await self.session.execute(stmt)
         await self.session.commit()
         return group_id
+
+    async def get_one(self, group_id):
+        query = select(Group).where(Group.id == group_id)
+        result = await self.session.execute(query)
+        return GetGroup.from_orm(result.first()[0])

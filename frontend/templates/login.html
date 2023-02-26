@@ -8,7 +8,7 @@
     const email = document.getElementById("email");
     const password = document.getElementById("password");
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "auth/jwt/login", true);
+    xhr.open("POST", "http://127.0.0.1:8000/auth/jwt/login", true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.onreadystatechange = function () {
     if (xhr.status === 200) {

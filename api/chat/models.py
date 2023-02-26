@@ -11,7 +11,9 @@ class Group(Base):
     __tablename__ = "Group"
     id: int = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     name: str = sa.Column(sa.String, nullable=False)
-    admin: int = sa.Column(sa.Integer, sa.ForeignKey("User.id"), nullable=False)
+    admin: int = sa.Column(
+        sa.Integer, sa.ForeignKey("User.id"), nullable=False)
+    edited_at: datetime = sa.Column(sa.TIMESTAMP, default=datetime.utcnow)
 
 
 class Message(Base):

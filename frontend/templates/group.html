@@ -1,7 +1,75 @@
 {% extends "base.html" %}
 {% block title %}
     <title>Group</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script>
+    	window.onload = init2;
+        async function init2(){
+        	window.group = await fetch("http://127.0.0.1:8000/group/{{id}}")
+                  .then(
+                    response => response.text() // .json(), .blob(), etc.
+                  ).then(
+                    text => JSON.parse(text) // Handle here
+                  );
+            user = await init();
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "http://127.0.0.1:8000/message/{{id}}", true);
+            xhr.onload = function () {
+                var messages = JSON.parse(xhr.responseText).slice();
+                for(var message in messages){
+                    if (messages[message]["user_id"] == user || window.group.admin == user){
+                        str = `<div id="${messages[message]["id"]}" style="background-color: lightgrey; margin: 0 auto; padding: 20px 20px;">${messages[message]["text"]} ${messages[message]["created_at"]}<button onclick="deleteMessage(${messages[message]["id"]})">Удалить</button></div>`;
+                    } else {
+                        str = `<div id="${messages[message]["id"]}" style="background-color: lightgrey; margin: 0 auto; padding: 20px 20px;">${messages[message]["text"]} ${messages[message]["created_at"]}</div>`;
+                    }
+                    html = $.parseHTML(str);
+                    $(".-1").prepend(html);
+                };
+
+            };
+            xhr.send();
+        };
+        var ws = new WebSocket(`ws://127.0.0.1:8000/message/`);
+            ws.onmessage = function(event) {
+                if (JSON.parse(event.data) == "You are not authorized to create or delete messages") {
+                    alert(event.data)
+                } else if (typeof(JSON.parse(event.data)) == "number"){
+                    var group = document.getElementById(JSON.parse(event.data));
+                    group.remove()
+
+                }else {
+                    var data = JSON.parse(JSON.parse(event.data))
+
+                    if (user == window.group.admin || user == data.user_id){
+                        str = `<div id="${data["id"]}" style="background-color: lightgrey; margin: 0 auto; padding: 20px 20px;">${data["text"]} ${data["created_at"]}<button onclick="deleteMessage(${data["id"]})">Удалить</button></div>`;
+                    } else {
+                        str = `<div id="${data["id"]}" style="background-color: lightgrey; margin: 0 auto; padding: 20px 20px;">${data["text"]} ${data["created_at"]}</a></div>`;
+                    }
+                      
+                    // Parsing the string into HTML
+                    html = $.parseHTML(str);
+                    $('.-1').prepend(html);
+                }
+                
+                //window.location.replace("/");
+            };
+            function sendMessage() {
+                var input = document.getElementById("input");
+                ws.send(JSON.stringify({text: input.value, group_id: window.group.id}));
+            }
+            function deleteMessage(id) {
+                ws.send(JSON.stringify({id: id}));
+            }
+    </script>
 {% endblock %}
 {% block content %}
-	{{ id }}
+	</br>
+	</br>
+	</br>
+	<div style="bottom: 0; left: 50%; margin-left: auto; margin-right: auto; width:60%;" class="-1">
+		<div style="background-color: lightgrey;  margin: 0 auto; padding: 20px 20px; text-align: center;">
+	            <input style="margin: 0 auto;" id="input"></input>
+	            <button style="display: table; margin: 0 auto; color: darkslategrey;" onclick="sendMessage()">+ Send message</button>
+	    </div>
+	</div>
 {% endblock %}

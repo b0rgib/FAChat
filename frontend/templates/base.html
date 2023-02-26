@@ -5,7 +5,7 @@
         <script>
             window.onload = init;
             async function init(){
-                window.user = await fetch("users/me")
+                window.user = await fetch("http://127.0.0.1:8000/users/me")
                   .then(
                     response => response.text() // .json(), .blob(), etc.
                   ).then(
@@ -25,7 +25,7 @@
             };
             function logout(){
                 var xhr = new XMLHttpRequest();
-                xhr.open("POST", "auth/jwt/logout", true);
+                xhr.open("POST", "http://127.0.0.1:8000/auth/jwt/logout", false);
                 xhr.send("");
             };    
         </script>
@@ -66,7 +66,7 @@
         <div class="topnav">
             <a class="active" href="/">Main</a>
             <a href="/login" style="float: right" id="login">Login</a>
-            <div id="logout"><a href="/" onclick="logout()" style="float: right">Logout</a></div>
+            <div id="logout"><a href="/" onclick="return logout()" style="float: right">Logout</a></div>
             <a href="/register" style="float: right" id="register">Register</a>
         </div>
         {% block content %}{% endblock %}
